@@ -1,131 +1,203 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Get references to the key DOM elements
     const boardElement = document.getElementById('gameBoard');
     const statusElement = document.getElementById('status');
     const resetButton = document.getElementById('resetButton');
 
-    // Initialize game state variables
-    let boardState = Array(9).fill(null); // Array representing the 9 cells (null, 'X', or 'O')
-    let currentPlayer = 'X';
+    // 'X' is always the Player, 'O' is always the AI
+    const PLAYER = 'X';
+    const AI = 'O';
+
+    let boardState = Array(9).fill(null);
+    let currentPlayer = PLAYER;
     let isGameActive = true;
 
-    // The eight possible winning combinations (indices of the board array)
+    // Winning combinations
     const WINNING_CONDITIONS = [
         [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
         [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
         [0, 4, 8], [2, 4, 6]             // Diagonals
     ];
 
-    /**
-     * Clears and recreates the 9 game cells based on the current boardState.
-     */
+    // --- GAME SETUP AND RENDERING ---
+
     function renderBoard() {
         boardElement.innerHTML = '';
         boardState.forEach((value, index) => {
             const cell = document.createElement('div');
             cell.classList.add('cell');
-            cell.dataset.index = index; // Store the cell's index
+            cell.dataset.index = index;
             cell.textContent = value;
-            
-            // Add player-specific class for styling
             if (value === 'X') {
                 cell.classList.add('x');
             } else if (value === 'O') {
                 cell.classList.add('o');
             }
-            
             cell.addEventListener('click', handleCellClick);
             boardElement.appendChild(cell);
         });
         updateStatus();
     }
 
-    /**
-     * Handles a click on a game cell.
-     */
+    function updateCellVisual(index, player) {
+        const cell = boardElement.querySelector(`[data-index="${index}"]`);
+        if (cell) {
+            cell.textContent = player;
+            cell.classList.add(player === PLAYER ? 'x' : 'o');
+        }
+    }
+
+    // --- PLAYER AND GAME FLOW ---
+
     function handleCellClick(event) {
         const index = parseInt(event.target.dataset.index);
 
-        // Check if the cell is already occupied or if the game is over
-        if (boardState[index] || !isGameActive) {
+        // Only allow move if it's the player's turn, game is active, and cell is empty
+        if (currentPlayer !== PLAYER || boardState[index] || !isGameActive) {
             return;
         }
 
-        // Update the board state and the cell's visual content
-        boardState[index] = currentPlayer;
-        event.target.textContent = currentPlayer;
-        event.target.classList.add(currentPlayer === 'X' ? 'x' : 'o');
-
+        makeMove(index, PLAYER);
         checkForWinner();
 
-        // Switch player if the game is still active
+        // If the game is still active, start the AI's turn
         if (isGameActive) {
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            currentPlayer = AI;
             updateStatus();
+            setTimeout(aiMove, 500); // Slight delay for better UX
         }
     }
 
-    /**
-     * Checks all winning conditions after a move.
-     */
+    function makeMove(index, player) {
+        boardState[index] = player;
+        updateCellVisual(index, player);
+    }
+
     function checkForWinner() {
-        let roundWon = false;
-        
-        for (const winCondition of WINNING_CONDITIONS) {
-            const [a, b, c] = winCondition;
-            
-            let valA = boardState[a];
-            let valB = boardState[b];
-            let valC = boardState[c];
-
-            // Skip if any cell in the condition is empty
-            if (valA === null || valB === null || valC === null) {
-                continue;
-            }
-            // Check if all three cells are the same player
-            if (valA === valB && valB === valC) {
-                roundWon = true;
-                break;
-            }
-        }
-
-        if (roundWon) {
-            // Display winner with the correct color
-            statusElement.innerHTML = `Player <span class="${currentPlayer === 'X' ? 'x' : 'o'}">${currentPlayer}</span> has won!`;
+        const result = checkGameState(boardState);
+        if (result === PLAYER) {
+            statusElement.innerHTML = `Player <span class="x">X</span> has won!`;
             isGameActive = false;
-            return;
-        }
-
-        // Check for a Draw (if no nulls are left and no winner)
-        if (!boardState.includes(null)) {
+        } else if (result === AI) {
+            statusElement.innerHTML = `Computer <span class="o">O</span> has won!`;
+            isGameActive = false;
+        } else if (result === 'draw') {
             statusElement.textContent = "It's a Draw!";
             isGameActive = false;
-            return;
         }
     }
 
-    /**
-     * Updates the status message displayed above the board.
-     */
     function updateStatus() {
         if (isGameActive) {
-            statusElement.innerHTML = `Player <span class="${currentPlayer === 'X' ? 'x' : 'o'}">${currentPlayer}</span>'s turn`;
+            statusElement.innerHTML = `Your turn: <span class="${currentPlayer === PLAYER ? 'x' : 'o'}">${currentPlayer}</span>`;
         }
     }
 
-    /**
-     * Resets the game to its initial state.
-     */
     function resetGame() {
         boardState = Array(9).fill(null);
-        currentPlayer = 'X';
+        currentPlayer = PLAYER;
         isGameActive = true;
         renderBoard();
     }
 
-    // Attach event listener to the reset button
+    // Event listener for the reset button
     resetButton.addEventListener('click', resetGame);
 
-    // Initial board render when the page loads
+    // Initial board render
     renderBoard();
+
+    // --- AI LOGIC (Minimax Algorithm) ---
+
+    function checkGameState(board) {
+        // Check for winner
+        for (const [a, b, c] of WINNING_CONDITIONS) {
+            if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                return board[a]; // Returns 'X' or 'O'
+            }
+        }
+
+        // Check for draw
+        if (!board.includes(null)) {
+            return 'draw';
+        }
+
+        // Game still ongoing
+        return null;
+    }
+
+    function getEmptySpots(board) {
+        return board.map((val, index) => val === null ? index : null).filter(val => val !== null);
+    }
+
+    function minimax(newBoard, player) {
+        const availableSpots = getEmptySpots(newBoard);
+        const gameState = checkGameState(newBoard);
+
+        // 1. Base Cases (Terminal States)
+        if (gameState === PLAYER) return { score: -10 };
+        if (gameState === AI) return { score: 10 };
+        if (gameState === 'draw') return { score: 0 };
+
+        let moves = [];
+
+        // 2. Loop through available spots
+        for (let i = 0; i < availableSpots.length; i++) {
+            let move = {};
+            move.index = availableSpots[i];
+            newBoard[availableSpots[i]] = player;
+
+            // 3. Recursive Call
+            if (player === AI) {
+                let result = minimax(newBoard, PLAYER);
+                move.score = result.score;
+            } else {
+                let result = minimax(newBoard, AI);
+                move.score = result.score;
+            }
+
+            // 4. Clean up (undo the move)
+            newBoard[availableSpots[i]] = null;
+            moves.push(move);
+        }
+
+        // 5. Evaluation (Find the best move)
+        let bestMove;
+        if (player === AI) {
+            // Maximize AI score
+            let bestScore = -Infinity;
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].score > bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                }
+            }
+        } else {
+            // Minimize Player score
+            let bestScore = Infinity;
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].score < bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                }
+            }
+        }
+
+        return moves[bestMove];
+    }
+
+    function aiMove() {
+        if (!isGameActive) return;
+
+        // Use Minimax to find the best move (index)
+        const bestSpot = minimax(boardState, AI);
+        
+        // Execute the move
+        makeMove(bestSpot.index, AI);
+        checkForWinner();
+
+        // Switch back to the Player
+        if (isGameActive) {
+            currentPlayer = PLAYER;
+            updateStatus();
+        }
+    }
 });
