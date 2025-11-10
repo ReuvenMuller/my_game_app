@@ -1,0 +1,29 @@
+{
+    "name": "Noughts & Crosses PWA",
+    "short_name": "TicTacToe",
+    "description": "A modern, minimalistic Noughts and Crosses (Tic-Tac-Toe) Progressive Web App.",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#2c3e50",
+    "theme_color": "#2c3e50",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "XO192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "XO512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "XO196x196.png",
+            "sizes": "196x196",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

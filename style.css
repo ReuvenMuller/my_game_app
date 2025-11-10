@@ -1,0 +1,128 @@
+:root {
+    /* Define color variables for easy theming */
+    --primary-color: #2c3e50; /* Dark Blue/Gray for structure/buttons */
+    --secondary-color: #ecf0f1; /* Light Gray for background/tiles */
+    --x-color: #e74c3c; /* Red for X */
+    --o-color: #3498db; /* Blue for O */
+}
+
+/* Base Styles for Native Look */
+* {
+    box-sizing: border-box;
+    /* Remove tap highlight on mobile for a native feel */
+    -webkit-tap-highlight-color: transparent; 
+}
+
+body {
+    /* Use system fonts for a native look on both iOS and Android */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Ensure it covers the full height of the viewport */
+    min-height: 100vh; 
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    text-align: center;
+    width: 100%;
+    /* Max width constrains the size on larger screens (desktop/tablet) */
+    max-width: 400px; 
+}
+
+h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.status-message {
+    font-size: 1.2em;
+    margin-bottom: 25px;
+    font-weight: 500;
+    min-height: 1.2em; /* Prevents layout shift when text changes */
+}
+
+/* Game Board - Responsive Grid */
+.board {
+    display: grid;
+    /* Create 3 equal columns */
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    width: 100%;
+    /* Ensure the board is square */
+    height: 400px; 
+    background-color: var(--primary-color);
+    border-radius: 12px;
+    overflow: hidden;
+    /* Subtle shadow for depth */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); 
+}
+
+/* Cell Styles (The 'Tile') */
+.cell {
+    background-color: var(--secondary-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 4em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+    /* Separator lines using the primary color */
+    border: 1px solid var(--primary-color); 
+}
+
+.cell:hover:not(.x):not(.o) {
+    background-color: #bdc3c7; /* Light hover effect */
+}
+
+/* Player Styles for distinctive colors */
+.x { color: var(--x-color); }
+.o { color: var(--o-color); }
+
+/* Remove borders on the very edges for a cleaner, unified look */
+.cell:nth-child(3n) { border-right: none; }
+.cell:nth-child(3n + 1) { border-left: none; }
+.cell:nth-child(-n + 3) { border-top: none; }
+.cell:nth-child(n + 7) { border-bottom: none; }
+
+/* Reset Button - Native App Button Feel */
+.reset-btn {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border: none;
+    padding: 12px 25px;
+    font-size: 1.1em;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 30px;
+    width: 100%;
+    transition: background-color 0.2s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.reset-btn:active {
+    background-color: #1a242f; /* Darken on press for mobile feedback */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 📱 Media Query for smaller screens (Phone) */
+@media (max-width: 480px) {
+    .board {
+        height: 300px; /* Make the board smaller on phones */
+        border-radius: 8px;
+    }
+
+    .cell {
+        font-size: 3.5em;
+    }
+
+    h1 {
+        font-size: 1.7em;
+    }
+}

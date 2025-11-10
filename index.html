@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe PWA</title>
+    
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2c3e50"> 
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <script>
+        // This script attempts to register the service worker for PWA functionality.
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => console.log('SW registered: ', registration))
+                    .catch(registrationError => console.log('SW registration failed: ', registrationError));
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Noughts & Crosses</h1>
+        <div id="status" class="status-message">Player X's turn</div>
+        
+        <div class="board" id="gameBoard">
+            </div>
+        
+        <button id="resetButton" class="reset-btn">New Game</button>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
